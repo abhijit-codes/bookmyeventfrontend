@@ -6,7 +6,7 @@ import { useApproveVendorMutation, useGetAdminVendorsQuery, useRejectVendorMutat
 import { BadgeCheck, CheckCircle, Eye, Search, Store, XCircle } from "lucide-react"
 
 const tabs = ["all", "approved", "pending", "rejected", "suspended"]
-const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/v1").replace("/api/v1", "")
+const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "").replace("/api/v1", "")
 const resolveUrl = (url) => !url ? "" : url.startsWith("http") ? url : `${API_ORIGIN}${url}`
 const date = (value) => value ? new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value)) : "N/A"
 

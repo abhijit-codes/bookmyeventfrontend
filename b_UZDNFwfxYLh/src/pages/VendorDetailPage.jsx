@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button"
 import { useAddMyFavoriteMutation, useGetMyFavoritesQuery, useGetVendorQuery, useRemoveMyFavoriteMutation } from "@/features/api/apiSlice"
 import { BadgeCheck, Calendar, ChevronLeft, CheckCircle, Globe, Heart, MapPin, MessageCircle, Share2, Star } from "lucide-react"
 
-const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/v1").replace("/api/v1", "")
+const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "https://bookmyeventbackend-5.onrender.com").replace("/api/v1", "")
 const resolveImage = (image) => {
   if (!image?.url) return ""
   return image.url.startsWith("http") ? image.url : `${API_ORIGIN}${image.url}`

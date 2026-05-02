@@ -21,7 +21,7 @@ import {
 import logoUrl from "@/assets/bookmyevent.jpeg";
 import { t } from "@/utils/appSettings";
 const API_ORIGIN = (
-  import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/v1"
+  import.meta.env.VITE_API_URL ?? ""
 ).replace("/api/v1", "");
 const resolveUrl = (url) => {
   if (!url) return "";

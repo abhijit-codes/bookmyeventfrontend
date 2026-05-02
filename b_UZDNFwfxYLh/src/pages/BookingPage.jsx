@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/Label"
 import { useCreateAdvanceOrderMutation, useGetVendorQuery, useVerifyAdvancePaymentMutation } from "@/features/api/apiSlice"
 import { BadgeCheck, ChevronLeft, CreditCard, Shield, Star } from "lucide-react"
 
-const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "http://localhost:5000/api/v1").replace("/api/v1", "")
+const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "https://bookmyeventbackend-5.onrender.com").replace("/api/v1", "")
 const resolveUrl = (url) => {
   if (!url) return ""
   return url.startsWith("http") ? url : `${API_ORIGIN}${url}`
