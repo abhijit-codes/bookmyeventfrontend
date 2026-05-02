@@ -1,0 +1,33 @@
+# v0 sandbox internal files
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
+
+# Vercel
+.vercel/
+next.user-config.*
+
+# Environment variables (IMPORTANT)
+.env
+.env*.local
+
+# Dependencies
+node_modules/
+
+# Build files
+.next/
+dist/
+build/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Unwanted folders (your case)
+backend/
+admin/
