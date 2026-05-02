@@ -19,7 +19,7 @@ import {
 } from "@/features/api/apiSlice"
 import { Bell, Camera, CreditCard, Heart, MapPin, Save, Send, Star, User, X } from "lucide-react"
 
-const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "https://bookmyeventbackend-5.onrender.com").replace("/api/v1", "")
+const API_ORIGIN = (import.meta.env.VITE_API_URL )
 const resolveUrl = (url) => {
   if (!url) return ""
   return url.startsWith("http") ? url : `${API_ORIGIN}${url}`

@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import { logout, setCredentials } from "@/features/auth/authSlice"
 
-const API_URL = import.meta.env.VITE_API_URL ?? "https://bookmyeventbackend-5.onrender.com/api/v1"
+const API_URL = import.meta.env.VITE_API_URL 
 
 const toFormData = (values) => {
   const formData = new FormData()

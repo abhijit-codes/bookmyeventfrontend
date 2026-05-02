@@ -13,7 +13,7 @@ const eventCategories = {
   wedding: ["Photography", "Catering", "DJs", "Venues"],
   party: ["Photography", "Decoration", "DJs", "Venues"],
 }
-const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "https://bookmyeventbackend-5.onrender.com/api/v1").replace("/api/v1", "")
+const API_ORIGIN = (import.meta.env.VITE_API_URL )
 
 const vendorCategory = (vendor) => vendor.VendorServices?.[0]?.Category?.name || "Vendor"
 const vendorLocation = (vendor) => [vendor.city, vendor.state].filter(Boolean).join(", ")
