@@ -1,0 +1,40 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "https://bookmyeventbackend.onrender.com/api/v1/:path*"
+    },
+    {
+      "source": "/auth/:path*",
+      "destination": "https://bookmyeventbackend.onrender.com/api/v1/auth/:path*"
+    },
+    {
+      "source": "/vendors/:path*",
+      "destination": "https://bookmyeventbackend.onrender.com/api/v1/vendors/:path*"
+    },
+    {
+      "source": "/bookings/:path*",
+      "destination": "https://bookmyeventbackend.onrender.com/api/v1/bookings/:path*"
+    },
+    {
+      "source": "/favorites/:path*",
+      "destination": "https://bookmyeventbackend.onrender.com/api/v1/favorites/:path*"
+    },
+    {
+      "source": "/wallet/:path*",
+      "destination": "https://bookmyeventbackend.onrender.com/api/v1/wallet/:path*"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "https://bookmyeventbackend.onrender.com/api/v1/admin/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://bookmyeventbackend.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
