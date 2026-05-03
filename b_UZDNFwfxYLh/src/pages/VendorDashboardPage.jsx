@@ -3,7 +3,8 @@ import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Label } from "@/components/ui/Label"
-import { useAddVendorServiceMutation, useCancelBookingMutation, useConfirmBookingMutation, useGetVendorDashboardQuery } from "@/features/api/apiSlice"
+import { useAddVendorServiceMutation, useCancelBookingMutation, useConfirmBookingMutation, useDeleteVendorServiceMutation, useGetVendorDashboardQuery } from "@/features/api/apiSlice"
+import { BankDetailsCard } from "@/pages/VendorDashboardExtraPages"
 import { Calendar, CheckCircle, CreditCard, DollarSign, Plus, Star, TrendingUp, User, Wallet, XCircle } from "lucide-react"
 
 const categories = [
@@ -21,13 +22,16 @@ const money = (value) => `Rs.${Number(value || 0).toLocaleString("en-IN")}`
 export default function VendorDashboardPage() {
   const { data: vendor, isLoading, isError } = useGetVendorDashboardQuery(undefined, { pollingInterval: 30000 })
   const [showServiceForm, setShowServiceForm] = useState(false)
+  const [showBankDetailsForm, setShowBankDetailsForm] = useState(false)
   const [message, setMessage] = useState("")
   const [addVendorService, addState] = useAddVendorServiceMutation()
+  const [deleteVendorService, deleteServiceState] = useDeleteVendorServiceMutation()
   const [confirmBooking] = useConfirmBookingMutation()
   const [cancelBooking] = useCancelBookingMutation()
 
   const services = vendor?.VendorServices ?? []
   const bookings = vendor?.Bookings ?? []
+  const bankAccounts = vendor?.BankAccounts ?? []
   const wallet = vendor?.Wallet
   const pendingBookings = bookings.filter((booking) => booking.status === "advance_paid")
   const upcomingBookings = bookings.filter((booking) => ["vendor_confirmed", "fully_paid"].includes(booking.status))
@@ -49,6 +53,19 @@ export default function VendorDashboardPage() {
       event.currentTarget.reset()
     } catch (err) {
       setMessage(err?.data?.message || "Unable to add service.")
+    }
+  }
+
+  const handleDeleteService = async (service) => {
+    setMessage("")
+    const confirmed = window.confirm(`Delete ${service.title}? If it has active bookings, it will be hidden instead.`)
+    if (!confirmed) return
+
+    try {
+      const response = await deleteVendorService(service.id).unwrap()
+      setMessage(response.message || "Service deleted successfully.")
+    } catch (err) {
+      setMessage(err?.data?.message || "Unable to delete service.")
     }
   }
 
@@ -77,7 +94,9 @@ export default function VendorDashboardPage() {
       <div className="grid gap-3 sm:grid-cols-3">
         <Link to="/vendor/dashboard/profile"><Button variant="outline" className="w-full justify-start"><User className="mr-2 h-4 w-4" />Profile</Button></Link>
         <Link to="/vendor/dashboard/wallet"><Button variant="outline" className="w-full justify-start"><Wallet className="mr-2 h-4 w-4" />Wallet</Button></Link>
-        <Link to="/vendor/dashboard/wallet"><Button variant="outline" className="w-full justify-start"><CreditCard className="mr-2 h-4 w-4" />Add Bank Details</Button></Link>
+        <Button type="button" variant="outline" className="w-full justify-start" onClick={() => setShowBankDetailsForm((current) => !current)}>
+          <CreditCard className="mr-2 h-4 w-4" />Bank Details
+        </Button>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -108,6 +127,8 @@ export default function VendorDashboardPage() {
           <Button disabled={addState.isLoading} className="sm:col-span-2 bg-primary hover:bg-primary/90">{addState.isLoading ? "Saving..." : "Save Service"}</Button>
         </form>
       )}
+
+      {showBankDetailsForm && <BankDetailsCard bankAccounts={bankAccounts} />}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-border bg-card">
@@ -140,9 +161,15 @@ export default function VendorDashboardPage() {
           <div className="border-b border-border p-5"><h2 className="font-semibold text-foreground">Your Services</h2></div>
           <div className="divide-y divide-border">
             {services.map((service) => (
-              <div key={service.id} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div key={service.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0"><p className="break-words font-medium text-foreground">{service.title}</p><p className="text-sm text-muted-foreground">{service.city}</p></div>
-                <div className="text-left sm:text-right"><p className="font-semibold text-foreground">{money(service.price)}</p><p className="text-xs text-muted-foreground">{service.is_active ? "Active" : "Hidden"}</p></div>
+                <div className="flex flex-col gap-2 text-left sm:items-end sm:text-right">
+                  <div><p className="font-semibold text-foreground">{money(service.price)}</p><p className="text-xs text-muted-foreground">{service.is_active ? "Active" : "Hidden"}</p></div>
+                  <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-2">
+                    <Link to="/vendor/dashboard/services"><Button type="button" variant="outline" size="sm" className="w-full">Update</Button></Link>
+                    <Button type="button" variant="outline" size="sm" disabled={deleteServiceState.isLoading} onClick={() => handleDeleteService(service)} className="w-full text-red-600 hover:bg-red-50">Delete</Button>
+                  </div>
+                </div>
               </div>
             ))}
             {services.length === 0 && <p className="p-5 text-sm text-muted-foreground">No services yet. Add your first service to appear in vendor listing.</p>}

@@ -155,6 +155,14 @@ export const apiSlice = createApi({
       query: (body) => ({ url: "/vendors/services", method: "POST", body: toFormData(body) }),
       invalidatesTags: ["VendorDashboard", "Vendors"],
     }),
+    updateVendorService: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/vendors/services/${id}`, method: "PATCH", body: toFormData(body) }),
+      invalidatesTags: ["VendorDashboard", "Vendors"],
+    }),
+    deleteVendorService: builder.mutation({
+      query: (id) => ({ url: `/vendors/services/${id}`, method: "DELETE" }),
+      invalidatesTags: ["VendorDashboard", "Vendors"],
+    }),
     updateVendorProfile: builder.mutation({
       query: (body) => ({ url: "/vendors/profile", method: "PATCH", body }),
       invalidatesTags: ["VendorDashboard", "Auth"],
@@ -165,6 +173,10 @@ export const apiSlice = createApi({
     }),
     addBankAccount: builder.mutation({
       query: (body) => ({ url: "/vendors/bank-accounts", method: "POST", body }),
+      invalidatesTags: ["VendorDashboard", "Wallet"],
+    }),
+    updateBankAccount: builder.mutation({
+      query: ({ id, ...body }) => ({ url: `/vendors/bank-accounts/${id}`, method: "PUT", body }),
       invalidatesTags: ["VendorDashboard", "Wallet"],
     }),
     sendVendorSupportMessage: builder.mutation({
@@ -328,9 +340,12 @@ export const {
   useGetVendorQuery,
   useGetVendorDashboardQuery,
   useAddVendorServiceMutation,
+  useUpdateVendorServiceMutation,
+  useDeleteVendorServiceMutation,
   useUpdateVendorProfileMutation,
   useUpdateVendorProfileImageMutation,
   useAddBankAccountMutation,
+  useUpdateBankAccountMutation,
   useSendVendorSupportMessageMutation,
   useGetVendorBookingsQuery,
   useConfirmBookingMutation,

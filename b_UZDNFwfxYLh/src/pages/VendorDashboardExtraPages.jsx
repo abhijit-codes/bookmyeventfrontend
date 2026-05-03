@@ -7,15 +7,18 @@ import { DashboardSettingsPanel } from "@/components/dashboard/DashboardSettings
 import {
   useAddBankAccountMutation,
   useAddVendorServiceMutation,
+  useDeleteVendorServiceMutation,
   useGetVendorDashboardQuery,
   useGetMyNotificationsQuery,
   useGetWalletQuery,
   useRequestWithdrawalMutation,
   useSendVendorSupportMessageMutation,
+  useUpdateBankAccountMutation,
+  useUpdateVendorServiceMutation,
   useUpdateVendorProfileMutation,
   useUpdateVendorProfileImageMutation,
 } from "@/features/api/apiSlice"
-import { BarChart3, Bell, Briefcase, Camera, CreditCard, DollarSign, Save, Send, Star, TrendingUp, User, X } from "lucide-react"
+import { BarChart3, Bell, Briefcase, Camera, CreditCard, DollarSign, Pencil, Save, Send, Star, Trash2, TrendingUp, User, X } from "lucide-react"
 
 const categories = [
   { id: 1, name: "Photography" },
@@ -30,7 +33,7 @@ const categories = [
 const money = (value) => `Rs.${Number(value || 0).toLocaleString("en-IN")}`
 const monthKey = (date) => new Date(date).toISOString().slice(0, 7)
 const statusLabel = (status) => String(status || "unknown").replace(/_/g, " ")
-const API_ORIGIN = (import.meta.env.VITE_API_URL )
+const API_ORIGIN = "https://bookmyeventbackend.onrender.com"
 const resolveUrl = (url) => {
   if (!url) return ""
   return url.startsWith("http") ? url : `${API_ORIGIN}${url}`
@@ -161,57 +164,88 @@ function BarChart({ data }) {
 export function VendorServicesPage() {
   const { data: vendor, isLoading } = useVendorDashboard()
   const [message, setMessage] = useState("")
+  const [editingId, setEditingId] = useState(null)
   const [addVendorService, addState] = useAddVendorServiceMutation()
+  const [updateVendorService, updateState] = useUpdateVendorServiceMutation()
+  const [deleteVendorService, deleteState] = useDeleteVendorServiceMutation()
   const services = vendor?.VendorServices ?? []
+  const editingService = services.find((service) => service.id === editingId)
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     setMessage("")
     const form = new FormData(event.currentTarget)
+    const payload = {
+      categoryId: form.get("categoryId"),
+      title: form.get("title"),
+      description: form.get("description"),
+      price: form.get("price"),
+      city: form.get("city"),
+      images: Array.from(form.getAll("images")).filter((file) => file?.size),
+    }
+
     try {
-      await addVendorService({
-        categoryId: form.get("categoryId"),
-        title: form.get("title"),
-        description: form.get("description"),
-        price: form.get("price"),
-        city: form.get("city"),
-        images: Array.from(form.getAll("images")).filter((file) => file?.size),
-      }).unwrap()
+      if (editingService) await updateVendorService({ id: editingService.id, ...payload }).unwrap()
+      else await addVendorService(payload).unwrap()
       event.currentTarget.reset()
-      setMessage("Service saved successfully.")
+      setEditingId(null)
+      setMessage(editingService ? "Service updated successfully." : "Service saved successfully.")
     } catch (err) {
       setMessage(err?.data?.message || "Unable to save service.")
     }
   }
 
+  const handleDelete = async (service) => {
+    setMessage("")
+    const confirmed = window.confirm(`Delete ${service.title}? If it has active bookings, it will be hidden instead.`)
+    if (!confirmed) return
+
+    try {
+      const response = await deleteVendorService(service.id).unwrap()
+      if (editingId === service.id) setEditingId(null)
+      setMessage(response.message || "Service deleted successfully.")
+    } catch (err) {
+      setMessage(err?.data?.message || "Unable to delete service.")
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <div><h1 className="text-2xl font-bold text-foreground">Services</h1><p className="text-muted-foreground">Add services and keep your listing active.</p></div>
-      <form onSubmit={handleSubmit} className="grid gap-4 rounded-xl border border-border bg-card p-5 sm:grid-cols-2">
+      <div><h1 className="text-2xl font-bold text-foreground">Services</h1><p className="text-muted-foreground">Add, update, or remove services from your listing.</p></div>
+      <form key={editingId || "new"} onSubmit={handleSubmit} className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-2 sm:p-5">
         <div>
           <Label>Category</Label>
-          <select name="categoryId" required className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none">
+          <select name="categoryId" required defaultValue={editingService?.category_id || editingService?.Category?.id || categories[0].id} className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none">
             {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
           </select>
         </div>
-        <div><Label>Service title</Label><Input name="title" required className="mt-2" placeholder="Premium wedding photography" /></div>
-        <div><Label>Price</Label><Input name="price" type="number" required className="mt-2" placeholder="25000" /></div>
-        <div><Label>City</Label><Input name="city" required className="mt-2" defaultValue={vendor?.city || ""} /></div>
-        <div className="sm:col-span-2"><Label>Description</Label><Input name="description" className="mt-2" placeholder="Package details, team size, coverage hours..." /></div>
-        <div className="sm:col-span-2"><Label>Photos</Label><Input name="images" type="file" accept="image/*" multiple className="mt-2" /></div>
+        <div><Label>Service title</Label><Input name="title" required className="mt-2" defaultValue={editingService?.title || ""} placeholder="Premium wedding photography" /></div>
+        <div><Label>Price</Label><Input name="price" type="number" required className="mt-2" defaultValue={editingService?.price || ""} placeholder="25000" /></div>
+        <div><Label>City</Label><Input name="city" required className="mt-2" defaultValue={editingService?.city || vendor?.city || ""} /></div>
+        <div className="sm:col-span-2"><Label>Description</Label><Input name="description" className="mt-2" defaultValue={editingService?.description || ""} placeholder="Package details, team size, coverage hours..." /></div>
+        <div className="sm:col-span-2"><Label>{editingService ? "Replace photos optional" : "Photos"}</Label><Input name="images" type="file" accept="image/*" multiple className="mt-2" /></div>
         {message && <p className="sm:col-span-2 text-sm text-primary">{message}</p>}
-        <Button disabled={addState.isLoading} className="sm:col-span-2 bg-primary hover:bg-primary/90"><Briefcase className="mr-2 h-4 w-4" />{addState.isLoading ? "Saving..." : "Save Service"}</Button>
+        <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row">
+          {editingService && <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => setEditingId(null)}>Cancel Update</Button>}
+          <Button disabled={addState.isLoading || updateState.isLoading} className="w-full bg-primary hover:bg-primary/90 sm:flex-1">
+            <Briefcase className="mr-2 h-4 w-4" />{addState.isLoading || updateState.isLoading ? "Saving..." : editingService ? "Update Service" : "Save Service"}
+          </Button>
+        </div>
       </form>
 
       <div className="grid gap-4 md:grid-cols-2">
         {isLoading && <EmptyState>Loading services...</EmptyState>}
         {services.map((service) => (
           <Card key={service.id}>
-            <div className="flex items-start justify-between gap-4">
-              <div><h2 className="font-semibold text-foreground">{service.title}</h2><p className="text-sm text-muted-foreground">{service.Category?.name || "Service"} in {service.city}</p></div>
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">{money(service.price)}</span>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0"><h2 className="break-words font-semibold text-foreground">{service.title}</h2><p className="text-sm text-muted-foreground">{service.Category?.name || "Service"} in {service.city}</p></div>
+              <span className="w-fit rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">{money(service.price)}</span>
             </div>
             <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">{service.description || "No description added."}</p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <Button type="button" variant="outline" onClick={() => setEditingId(service.id)}><Pencil className="mr-2 h-4 w-4" />Update Service</Button>
+              <Button type="button" variant="outline" disabled={deleteState.isLoading} onClick={() => handleDelete(service)} className="text-red-600 hover:bg-red-50"><Trash2 className="mr-2 h-4 w-4" />Delete Service</Button>
+            </div>
           </Card>
         ))}
         {!isLoading && services.length === 0 && <EmptyState>No services yet. Add your first service above.</EmptyState>}
@@ -418,23 +452,29 @@ export function VendorWalletPage() {
   )
 }
 
-function BankDetailsCard({ bankAccounts = [] }) {
+export function BankDetailsCard({ bankAccounts = [] }) {
   const [status, setStatus] = useState("")
   const [addBankAccount, bankState] = useAddBankAccountMutation()
+  const [updateBankAccount, updateState] = useUpdateBankAccountMutation()
+  const currentBank = bankAccounts[0]
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     setStatus("")
     const form = new FormData(event.currentTarget)
+    const payload = {
+      accountHolderName: form.get("accountHolderName"),
+      accountNumber: form.get("accountNumber"),
+      ifsc: form.get("ifsc"),
+      bankName: form.get("bankName"),
+    }
+
     try {
-      await addBankAccount({
-        accountHolderName: form.get("accountHolderName"),
-        accountNumber: form.get("accountNumber"),
-        ifsc: form.get("ifsc"),
-        bankName: form.get("bankName"),
-      }).unwrap()
+      const response = currentBank
+        ? await updateBankAccount({ id: currentBank.id, ...payload }).unwrap()
+        : await addBankAccount(payload).unwrap()
       event.currentTarget.reset()
-      setStatus("Bank details saved.")
+      setStatus(response.message || (currentBank ? "Bank details updated successfully." : "Bank details saved successfully."))
     } catch (err) {
       setStatus(err?.data?.message || "Unable to save bank details.")
     }
@@ -442,15 +482,17 @@ function BankDetailsCard({ bankAccounts = [] }) {
 
   return (
     <Card>
-      <h2 className="font-semibold text-foreground">Add bank details</h2>
-      {bankAccounts[0] && <p className="mt-2 text-sm text-muted-foreground">Current bank: {bankAccounts[0].bank_name} ending {bankAccounts[0].account_number_last4} - {bankAccounts[0].is_verified ? "Verified" : "Verification pending"}</p>}
+      <h2 className="font-semibold text-foreground">{currentBank ? "Update bank details" : "Add bank details"}</h2>
+      {currentBank && <p className="mt-2 text-sm text-muted-foreground">Current bank: {currentBank.bank_name} ending {currentBank.account_number_last4} - {currentBank.is_verified ? "Verified" : "Verification pending"}</p>}
       <form onSubmit={handleSubmit} className="mt-4 grid gap-3">
-        <Input name="accountHolderName" required placeholder="Account holder name" />
-        <Input name="accountNumber" required placeholder="Account number" />
-        <Input name="ifsc" required placeholder="IFSC code" />
-        <Input name="bankName" required placeholder="Bank name" />
+        <Input name="accountHolderName" required defaultValue={currentBank?.account_holder_name || ""} placeholder="Account holder name" />
+        <Input name="accountNumber" required inputMode="numeric" placeholder={currentBank ? `New full account number, current ends ${currentBank.account_number_last4}` : "Account number"} />
+        <Input name="ifsc" required defaultValue={currentBank?.ifsc || ""} placeholder="IFSC code" />
+        <Input name="bankName" required defaultValue={currentBank?.bank_name || ""} placeholder="Bank name" />
         {status && <p className="text-sm text-primary">{status}</p>}
-        <Button disabled={bankState.isLoading} className="bg-primary hover:bg-primary/90"><CreditCard className="mr-2 h-4 w-4" />{bankState.isLoading ? "Saving..." : "Save Bank Details"}</Button>
+        <Button disabled={bankState.isLoading || updateState.isLoading} className="bg-primary hover:bg-primary/90">
+          <CreditCard className="mr-2 h-4 w-4" />{bankState.isLoading || updateState.isLoading ? "Saving..." : currentBank ? "Update Bank Details" : "Save Bank Details"}
+        </Button>
       </form>
     </Card>
   )

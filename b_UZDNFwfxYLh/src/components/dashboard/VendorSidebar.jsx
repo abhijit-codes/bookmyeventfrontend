@@ -20,9 +20,7 @@ import {
 } from "lucide-react";
 import logoUrl from "@/assets/bookmyevent.jpeg";
 import { t } from "@/utils/appSettings";
-const API_ORIGIN = (
-  import.meta.env.VITE_API_URL ?? ""
-).replace("/api/v1", "");
+const API_ORIGIN = "https://bookmyeventbackend.onrender.com";
 const resolveUrl = (url) => {
   if (!url) return "";
   return url.startsWith("http") ? url : `${API_ORIGIN}${url}`;
