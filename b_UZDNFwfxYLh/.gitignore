@@ -31,3 +31,4 @@ Thumbs.db
 # Unwanted folders (your case)
 backend/
 admin/
+.vercel
