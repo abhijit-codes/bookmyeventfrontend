@@ -1,7 +1,12 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 import { logout, setCredentials } from "@/features/auth/authSlice"
 
-const API_URL = import.meta.env.VITE_API_URL 
+const normalizeApiUrl = (url) => {
+  const baseUrl = (url || "https://bookmyeventbackend.onrender.com/api/v1").replace(/\/+$/, "")
+  return baseUrl.endsWith("/api/v1") ? baseUrl : `${baseUrl}/api/v1`
+}
+
+const API_URL = normalizeApiUrl(import.meta.env.PROD ? "/api/v1" : import.meta.env.VITE_API_URL)
 
 const toFormData = (values) => {
   const formData = new FormData()
